@@ -1,6 +1,6 @@
 import { exportHtml } from '../utils/exportHtml';
 
-export default function TopBar({ data, onReset }) {
+export default function TopBar({ data, onReset, onPasteSort }) {
   const handleExport = () => exportHtml(data);
 
   return (
@@ -11,7 +11,7 @@ export default function TopBar({ data, onReset }) {
       display: 'flex',
       alignItems: 'center',
       height: 60,
-      gap: 16,
+      gap: 12,
       flexShrink: 0,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
@@ -26,6 +26,17 @@ export default function TopBar({ data, onReset }) {
           Newsletter Builder
         </span>
       </div>
+      <button
+        onClick={onPasteSort}
+        style={{
+          fontSize: 13, cursor: 'pointer', fontFamily: 'League Spartan', fontWeight: 600,
+          background: 'linear-gradient(135deg, #2a1a4a, #1a1a3a)',
+          border: '1px solid #7c3aed', borderRadius: 6, color: '#c084fc',
+          padding: '7px 14px', letterSpacing: '0.03em', whiteSpace: 'nowrap',
+        }}
+      >
+        ✨ Paste & Sort
+      </button>
       <button className="btn-secondary" onClick={onReset} style={{ fontSize: 13 }}>↺ Reset</button>
       <button className="btn-primary" onClick={handleExport} style={{ fontSize: 13 }}>↓ Export HTML</button>
     </div>

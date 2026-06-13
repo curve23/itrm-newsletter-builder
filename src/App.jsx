@@ -8,10 +8,12 @@ import Spotted from './components/sections/Spotted';
 import Overheard from './components/sections/Overheard';
 import ComingUp from './components/sections/ComingUp';
 import Skyelights from './components/sections/Skyelights';
+import PasteSortModal from './components/PasteSortModal';
 import { useNewsletter } from './hooks/useNewsletter';
 
 export default function App() {
   const [activeSection, setActiveSection] = useState('issueDetails');
+  const [showPasteSort, setShowPasteSort] = useState(false);
   const {
     data, hasContent, showToast,
     updateIssueDetails,
@@ -20,7 +22,7 @@ export default function App() {
     addQuote, removeQuote, updateQuote,
     addEvent, removeEvent, updateEvent,
     updateSkyelights, updateSpotted,
-    reset,
+    reset, save,
   } = useNewsletter();
 
   const mainRef = useRef(null);
@@ -43,9 +45,13 @@ export default function App() {
     { key: 'moversShakers', icon: '🎯', title: 'Movers & Shakers' },
   ];
 
+  const handleApplyParsed = (parsed) => {
+    save({ ...data, ...parsed });
+  };
+
   return (
     <div className="app">
-      <TopBar data={data} onReset={handleReset} />
+      <TopBar data={data} onReset={handleReset} onPasteSort={() => setShowPasteSort(true)} />
       <div className="app-body">
         <Sidebar active={activeSection} hasContent={hasContent} onNavigate={navigate} />
         <div className="main-content" ref={mainRef}>
@@ -83,6 +89,12 @@ export default function App() {
         </div>
       </div>
       {showToast && <div className="toast">✓ Draft restored!</div>}
+      {showPasteSort && (
+        <PasteSortModal
+          onApply={handleApplyParsed}
+          onClose={() => setShowPasteSort(false)}
+        />
+      )}
     </div>
   );
 }
