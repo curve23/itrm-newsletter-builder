@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/cropImage';
 
@@ -7,8 +7,13 @@ function PhotoSlot({ photo, onUpdate, onRemove, showPosition = false }) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [confirming, setConfirming] = useState(false);
+  const capRef = useRef(null);
 
-  const onCropComplete = useCallback((_, pixels) => setCroppedAreaPixels(pixels), []);
+  const onCropComplete = useCallback((_, pixels) => {
+    setCroppedAreaPixels(pixels);
+    capRef.current = pixels;
+  }, []);
 
   const handleFile = (e) => {
     const file = e.target.files[0];
@@ -19,15 +24,23 @@ function PhotoSlot({ photo, onUpdate, onRemove, showPosition = false }) {
       setCropping(true);
       setCrop({ x: 0, y: 0 });
       setZoom(1);
+      setCroppedAreaPixels(null);
+      capRef.current = null;
     };
     reader.readAsDataURL(file);
   };
 
   const confirmCrop = async () => {
-    if (!photo?.src || !croppedAreaPixels) return;
-    const croppedImg = await getCroppedImg(photo.src, croppedAreaPixels);
-    onUpdate({ ...photo, cropped: croppedImg });
-    setCropping(false);
+    const pixels = capRef.current || croppedAreaPixels;
+    if (!photo?.src || !pixels) return;
+    setConfirming(true);
+    try {
+      const croppedImg = await getCroppedImg(photo.src, pixels);
+      onUpdate({ ...photo, cropped: croppedImg });
+      setCropping(false);
+    } finally {
+      setConfirming(false);
+    }
   };
 
   if (!photo?.src) {
@@ -44,7 +57,7 @@ function PhotoSlot({ photo, onUpdate, onRemove, showPosition = false }) {
   if (cropping) {
     return (
       <div style={{ background: '#0a1428', borderRadius: 8, padding: 16 }}>
-        <div style={{ position: 'relative', width: '100%', height: 280, background: '#000' }}>
+        <div style={{ position: 'relative', width: '100%', height: 280, background: '#000', borderRadius: 6 }}>
           <Cropper
             image={photo.src}
             crop={crop}
@@ -55,10 +68,21 @@ function PhotoSlot({ photo, onUpdate, onRemove, showPosition = false }) {
             onCropComplete={onCropComplete}
           />
         </div>
-        <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12, background: '#0a1428', padding: '8px 0 0' }}>
           <span style={{ fontFamily: 'DM Mono', fontSize: 10, color: '#8899bb', whiteSpace: 'nowrap' }}>ZOOM</span>
-          <input type="range" min={1} max={3} step={0.01} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} style={{ flex: 1, accentColor: '#ff009d' }} />
-          <button className="btn-primary" onClick={confirmCrop} style={{ whiteSpace: 'nowrap' }}>✓ Confirm</button>
+          <input
+            type="range" min={1} max={3} step={0.01} value={zoom}
+            onChange={(e) => setZoom(Number(e.target.value))}
+            style={{ flex: 1, accentColor: '#ff009d' }}
+          />
+          <button
+            className="btn-primary"
+            onClick={confirmCrop}
+            disabled={confirming}
+            style={{ whiteSpace: 'nowrap', opacity: confirming ? 0.6 : 1 }}
+          >
+            {confirming ? '...' : '✓ Confirm'}
+          </button>
         </div>
       </div>
     );
