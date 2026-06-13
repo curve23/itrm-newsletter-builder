@@ -1,0 +1,9 @@
+:{$PORT:3000} {
+	basicauth {
+		skye $2b$14$FEcoMsD2sqEnQlx4m2QADuq4AbSwnxr3L41FZO/CwJX/.Eah31az6
+	}
+
+	root * /app/dist
+	file_server
+	try_files {path} /index.html
+}

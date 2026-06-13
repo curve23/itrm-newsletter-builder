@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "npx serve dist -p ${PORT:-3000}",
+    "startCommand": "caddy run --config Caddyfile --adapter caddyfile",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
